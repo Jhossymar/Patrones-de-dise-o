@@ -2,30 +2,52 @@ import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
 
-// Interfaz del nuevo sistema de reportes
-interface ReporteNuevo {
-    void generar(String datos);
+// Interfaz común
+interface Notificacion {
+    void enviar(String mensaje);
 }
 
-// Sistema contable antiguo
-class SistemaContableAntiguo {
-    public void exportar(String contenido) {
-        System.out.println("Exportando a sistema contable antiguo: " + contenido);
+// Implementación base
+class NotificacionBase implements Notificacion {
+    public void enviar(String mensaje) {
+        System.out.println("Notificación enviada: " + mensaje);
     }
 }
 
-// Adaptador para conectar el nuevo sistema con el antiguo
-class AdaptadorReporte implements ReporteNuevo {
-    private SistemaContableAntiguo sistemaAntiguo;
+// Decorador base
+abstract class NotificacionDecorator implements Notificacion {
+    protected Notificacion notificacion;
 
-    public AdaptadorReporte(SistemaContableAntiguo sistemaAntiguo) {
-        this.sistemaAntiguo = sistemaAntiguo;
+    public NotificacionDecorator(Notificacion notificacion) {
+        this.notificacion = notificacion;
     }
 
-    @Override
-    public void generar(String datos) {
-        // Convertimos los datos del nuevo sistema al formato esperado por el sistema antiguo
-        sistemaAntiguo.exportar(datos);
+    public void enviar(String mensaje) {
+        notificacion.enviar(mensaje);
+    }
+}
+
+// Decorador para SMS
+class NotificacionSMS extends NotificacionDecorator {
+    public NotificacionSMS(Notificacion notificacion) {
+        super(notificacion);
+    }
+
+    public void enviar(String mensaje) {
+        super.enviar(mensaje);
+        System.out.println("También se envió por SMS: " + mensaje);
+    }
+}
+
+// Decorador para WhatsApp
+class NotificacionWhatsApp extends NotificacionDecorator {
+    public NotificacionWhatsApp(Notificacion notificacion) {
+        super(notificacion);
+    }
+
+    public void enviar(String mensaje) {
+        super.enviar(mensaje);
+        System.out.println("También se envió por WhatsApp: " + mensaje);
     }
 }
 
@@ -39,9 +61,10 @@ class NombreCodificador {
 // Clase para mostrar el encabezado del programa
 class Encabezado {
     public static void mostrar() {
-        String nombre = "Jhossymar Garces";  // Se usa el nombre del estudiante
+        String nombre = "nombre Codificado";
         String nombreCodificado = NombreCodificador.codificarNombre(nombre);
         String universidad = "Universidad Cooperativa de Colombia";
+        String estudiante = "Jhossymar Garces";
         String profesor = "Harold Bolaños";
         String asignatura = "Patrones de Diseño";
         String fecha = new SimpleDateFormat("dd/MM/yyyy").format(new Date());
@@ -50,28 +73,32 @@ class Encabezado {
         System.out.println("               ENCABEZADO               ");
         System.out.println("========================================");
         System.out.println("Fecha       : " + fecha);
-        System.out.println("Estudiante  : " + nombre);
+        System.out.println("Nombre      : " + nombre);
         System.out.println("Codificado  : " + nombreCodificado);
         System.out.println("Universidad : " + universidad);
+        System.out.println("Estuadiante    : " + estudiante);
         System.out.println("Profesor    : " + profesor);
         System.out.println("Asignatura  : " + asignatura);
         System.out.println("========================================");
     }
 }
 
-// Cliente que usa el nuevo sistema de reportes
+// Cliente
 public class Main {
     public static void main(String[] args) {
         // Mostrar el encabezado
         Encabezado.mostrar();
 
-        // Crear instancia del sistema contable antiguo
-        SistemaContableAntiguo sistemaAntiguo = new SistemaContableAntiguo();
+        // Notificación simple
+        Notificacion noti = new NotificacionBase();
 
-        // Adaptar el nuevo sistema de reportes al sistema contable antiguo
-        ReporteNuevo reporte = new AdaptadorReporte(sistemaAntiguo);
+        // Decorar con SMS
+        Notificacion notiSMS = new NotificacionSMS(noti);
 
-        // Generar un reporte con el nuevo sistema
-        reporte.generar("Reporte financiero de marzo 2025");
+        // Decorar con WhatsApp y SMS
+        Notificacion notiCompleta = new NotificacionWhatsApp(notiSMS);
+
+        // Enviar notificación con todas las funcionalidades
+        notiCompleta.enviar("Tu pedido ha sido enviado.");
     }
 }
